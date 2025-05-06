@@ -1,0 +1,108 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <title>Admin Panel</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static "css/style.css" %}">
+    </head>
+
+    <body>
+
+        <header>
+            <div class="container">
+                <div>
+                    <h1>Task Manager</h1>
+                    <p>Admin Panel</p>
+                </div>
+                <div>
+                    {% if user.role == 'superadmin' %}
+                    <button class="green" onclick="location.href='{% url 'add-user' %}'">Add User</button>
+                    {% endif %}
+                    {% if user.role in 'admin superadmin' %}
+                    <button class="green" onclick="location.href='{% url 'add-task' %}'">Add Task</button>
+                    {% endif %}
+                    <button class="red" onclick="location.href='{% url 'logout' %}'">Logout</button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="container">
+            {% for message in messages %}
+            <p class="message">{{message}}</p>
+            {% endfor %}
+            {% if request.user.role in 'admin superadmin' %}
+            <div class="user-table">
+                <h2 class="title">Users</h2>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                    </tr>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{user.pk}}</td>
+                        <td>{{user.username}}</td>
+                        <td>{{user.role}}</td>
+                        <td>
+                            {% if request.user.role == 'superadmin' %}
+                            {% if user.role in 'user admin' %}
+                            <button class="green" onclick="location.href='{% url 'promote-user' user.pk %}'">Promote</button>
+                            <button class="orange" onclick="location.href='{% url 'demote-user' user.pk %}'">Demote</button>
+                            {% if user.role == 'user' %}
+                            <button class="orange" onclick="location.href='{% url 'edit-user' user.pk %}'">Edit</button>
+                            {% endif %}
+                            <button class="red" onclick="location.href='{% url 'delete-user' user.pk %}'">Delete</button>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            {% endif %}
+
+            <h2 class="tasks-title">Tasks</h2>
+            {% for task in tasks %}
+            <div class="row">
+                <div class="show-tab">
+                    <div><strong>ID</strong>: {{task.pk}}</div>
+                    <div><strong>Title</strong>: {{task.title}}</div>
+                    <div><strong>Assigned to</strong>: {{task.assigned_to}}</div>
+                    <div><strong>Status</strong>: {{task.get_status_display}}</div>
+                    <div><strong>Due date</strong>: {{task.due_date}}</div>
+                </div>
+                <div class="hidden-tab">
+                    <p><span>Description</span>: {{task.description}}</p>
+                    <p><span>Completion report</span>: {{task.completion_report}}</p>
+                    <p><span>Worked hours</span>: {{task.worked_hours|default:" _"}}</p>
+                    <p><span>Admin</span>: {{task.assigned_to.assigned_to|default:" _"}}</p>
+                    {% if request.user.role in 'admin superadmin' %}
+                    <button class="green" onclick="location.href='{% url 'edit-task' task.pk %}'">Edit</button>
+                    <button class="red" onclick="location.href='{% url 'delete-task' task.pk %}'">Delete</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+        </div>
+
+        <!-- Modal Structure -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Modal Title</h2>
+            <p>This is a simple modal popup.</p>
+            <!-- Optional form or actions here -->
+            <button>Submit</button>
+            </div>
+        </div>
+
+    </body>
+</html>
